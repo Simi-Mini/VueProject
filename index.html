@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HTL Dornbirn 5bWI – Personen-Karten</title>
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  
+
+  <style>
+    :root{
+      --bg: #3e3c1a;       
+      --card: #e8e8e8;     
+      --gap: 20px;         
+      --maxw: 1200px;      
+      --radius: 6px;       
+      --shadow: 0 6px 18px rgba(0,0,0,0.18); 
+      --text: #1d1d1d;     
+      --white: #ffffff;    
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      margin: 0;
+      font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    .top {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 64px;
+      box-sizing: border-box;
+      gap: 28px;
+    }
+    .page {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 64px;
+      box-sizing: border-box;
+      gap: 28px;
+    }
+
+    .title {
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      text-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    } 
+
+    .grid {
+      width: 100%;
+      max-width: var(--maxw);
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: var(--gap);
+    }
+
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden; 
+      display: flex;
+      flex-direction: column;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+    }
+
+    .card__img {
+      width: 100%;
+      height: 300px;           
+      object-fit: cover;
+      display: block;
+      border-top-left-radius: var(--radius);
+      border-top-right-radius: var(--radius);
+      background: #cfcfcf;     
+    }
+
+    .card__body {
+      padding: 14px 16px 18px;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card__name {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.25;
+      color: #111;
+    }
+
+    .card__meta {
+      margin: 0;
+      font-size: 13px;
+      opacity: 0.75;
+      word-break: break-word;
+    }
+
+    .card__desc {
+      margin: 4px 0 0;
+      font-size: 14px;
+      line-height: 1.45;
+      color: #202020;
+    }
+
+
+    .status {
+      color: var(--white);
+      font-size: 16px;
+      text-align: center;
+      margin-top: 8px;
+      min-height: 24px;
+    }
+
+    .spinner {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .spinner__dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--white);
+      opacity: 0.9;
+      animation: blink 1s infinite ease-in-out;
+    }
+    .spinner__dot:nth-child(2) { animation-delay: .15s; }
+    .spinner__dot:nth-child(3) { animation-delay: .3s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+      40% { opacity: 1; transform: translateY(-3px); }
+    }
+
+    @media (max-width: 340px) {
+      .card__desc { font-size: 13px; }
+      .card__name { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+    <div id="top">
+    <h1 class="title">HTL Dornbirn 5bWI</h1>
+    </div>
+<main class="page">
+    <div id="status" class="status" role="status" aria-live="polite">
+      <span class="spinner" id="spinner">
+        <span class="spinner__dot"></span>
+        <span class="spinner__dot"></span>
+        <span class="spinner__dot"></span>
+      </span>
+      <span id="statusText">Loading…</span>
+    </div>
+
+    <section id="grid" class="grid" aria-label="Personenliste"></section>
+  </main>
+
+  <script>
+ 
+    const API_URL = "https://fakerapi.it/api/v2/persons?_quantity=10";
+
+    const randomImageUrl = () =>
+      `https://picsum.photos/600/300?random=${Math.floor(Math.random() * 1000) + 1}`;
+
+    const LOREM =
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer euismod ex vitae massa porta.";
+
+    const gridEl = document.getElementById("grid");
+    const statusEl = document.getElementById("status");
+    const statusTextEl = document.getElementById("statusText");
+    const spinnerEl = document.getElementById("spinner");
+
+    function showLoading() {
+      statusEl.style.visibility = "visible";
+      spinnerEl.style.display = "inline-flex";
+      statusTextEl.textContent = "Loading…";
+    }
+
+    function hideStatus() {
+      statusEl.style.visibility = "hidden";
+    }
+
+    function showError(message = "Fehler beim Laden der Daten") {
+      spinnerEl.style.display = "none";
+      statusEl.style.visibility = "visible";
+      statusTextEl.textContent = message;
+    }
+
+
+    function createCard(person) {
+      const { firstname = "", lastname = "", email = "", birthday = "" } = person || {};
+
+      const card = document.createElement("article");
+      card.className = "card";
+
+      const img = document.createElement("img");
+      img.className = "card__img";
+      img.alt = `Portrait von ${firstname} ${lastname}`.trim();
+      img.src = randomImageUrl();
+
+      const body = document.createElement("div");
+      body.className = "card__body";
+
+      const nameEl = document.createElement("h3");
+      nameEl.className = "card__name";
+      nameEl.textContent = `${firstname} ${lastname}`.trim() || "Unbekannter Name";
+
+      const metaEl = document.createElement("p");
+      metaEl.className = "card__meta";
+      metaEl.textContent = email || (birthday ? `Geburtstag: ${birthday}` : "keine Angaben");
+
+      const descEl = document.createElement("p");
+      descEl.className = "card__desc";
+      descEl.textContent = LOREM;
+
+      body.appendChild(nameEl);
+      body.appendChild(metaEl);
+      body.appendChild(descEl);
+
+      card.appendChild(img);
+      card.appendChild(body);
+
+      return card;
+    }
+
+
+    function renderList(people = []) {
+      gridEl.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      people.forEach(p => frag.appendChild(createCard(p)));
+      gridEl.appendChild(frag);
+    }
+
+    async function loadData() {
+      showLoading();
+      try {
+        const res = await fetch(API_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+
+        const people = Array.isArray(json?.data) ? json.data : [];
+        if (!people.length) throw new Error("Leere Daten");
+
+        renderList(people);
+        hideStatus();
+      } catch (err) {
+        console.error("API-Fehler:", err);
+        showError("Fehler beim Laden der Daten");
+      }
+    }
+
+
+    loadData();
+  </script>
+</body>
+</html>
